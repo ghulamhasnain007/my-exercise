@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 // import MultiField from '../multiSelect/Field';
 import { useForm } from 'react-hook-form';
 import { addEmployee, getAllEmployees } from '../../services/EmployeeServices';
 
 function AddForm() {
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const [id, setId] = useState(1)
 
-  const onSubmit = (data) => {
-    const id = new Date().toString()
+  const onSubmit = async(data) => {
+    // const id = new Date().toString()
     // const allData = [id, ...data]
-    addEmployee(data)
+    setId(prev => prev+1)
+    await addEmployee(data, id)
     reset()
     console.log(data);
   };

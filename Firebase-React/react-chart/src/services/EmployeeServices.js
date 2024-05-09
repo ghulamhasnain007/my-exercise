@@ -1,14 +1,14 @@
-import { collection, addDoc, getDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, getDoc, getDocs, setDoc, doc } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
 
-export async function addEmployee(data) {
+export async function addEmployee(data, id) {
     const supervisor = data.superDesignation
   try {
-    const ceoRef = collection(db, 'Employees', `${supervisor}`, 'SubOrdinates');
-    await addDoc(ceoRef, 
-    data.EmployeeName = {
+    await setDoc(doc(db, 'Employees', `${supervisor}`, 'SubOrdinates', data.EmployeeName ),{
       EmployeeName: data.EmployeeName,
-      designation: data.Designation
+      designation: data.Designation,
+      supervisor: data.Supervisor,
+      supervisorDesignation: data.superDesignation
     });
     console.log("Subordinate added under CEO");
   } catch (error) {
@@ -33,9 +33,9 @@ export async function addEmployee(data) {
 //     }
 // }
 
-export async function getAllEmployees() {
+export async function getAllEmployees(rank) {
     try {
-        const employeesRef = collection(db, "Employees");
+        const employeesRef = collection(db, "Employees", rank , "SubOrdinates");
         const querySnapshot = await getDocs(employeesRef);
         const employeesData = [];
         querySnapshot.forEach(doc => {
@@ -50,4 +50,55 @@ export async function getAllEmployees() {
         console.error("Error getting employees: ", error);
         return [];
     }
+}
+
+// export async function specificData(supervisor, employee){
+//   try {
+//     console.log("Querying database for supervisor:", supervisor, "and employee:", employee);
+//     const employeeRef = collection(db, "Employees", supervisor, employee);
+//     const querySnapshot = await getDocs(employeeRef);
+    
+//     if (querySnapshot.empty) {
+//       console.log("No documents found for supervisor:", supervisor, "and employee:", employee);
+//       return [];
+//     }
+    
+//     const employeeData = [];
+//     querySnapshot.forEach(doc => {
+//       employeeData.push({
+//         id: doc.id,
+//         ...doc.data()
+//       });
+//     });
+    
+//     console.log("All employees:", employeeData);
+//     return employeeData;
+//   } catch (error) {
+//     console.error("Error getting employees: ", error);
+//     return [];
+//   }
+// }
+
+
+
+
+export async function specificData(supervisor, employee){
+  try {
+    console.log("Querying database for supervisor:", supervisor, "and employee:", employee);
+    const employeeRef = doc(db, "Employees", supervisor, "SubOrdinates", employee);
+    const docSnap = await getDoc(employeeRef);
+    
+    if (!docSnap.exists()) {
+      console.log("No document found for supervisor:", supervisor, "and employee:", employee);
+      return null; // Return null if no document is found
+    }
+    
+    const employeeData = docSnap.data();
+    
+    console.log("Employee data:", employeeData);
+    return employeeData;
+  } catch (error) {
+    console.error("Error getting employee data: ", error);
+    return null; // Return null in case of error
+  }
 }
